@@ -1,0 +1,6 @@
+0.0.6   Implement AGGREGATION_AVG_ZERO
+0.0.5   Put items enhanced via batch write
+0.0.4   Include last operation
+0.0.3   Reading TABLE_PREFIX environment variable
+0.0.2   Uses configuration from table
+0.0.1   Implement granularities: second,minute,hour,day,month,year and aggregations:AGGREGATION_SUM,AGGREGATION_LAST,AGGREGATION_MAX,AGGREGATION_MIN,AGGREGATION_ABS_MAX,AGGREGATION_ABS_MIN,AGGREGATION_AVG,AGGREGATION_COUNT

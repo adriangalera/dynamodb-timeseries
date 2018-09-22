@@ -1,0 +1,329 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>DynamoDB Timeserie example</title>
+    <meta name="description" content="DynamoDB Timeserie visualization">
+    <meta name="author" content="Adrian Galera">
+    <script type="text/javascript"
+            src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript"
+            src="bower_components/moment/min/moment.min.js"></script>
+    <script type="text/javascript"
+            src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript"
+            src="bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="bower_components/echarts.common.min.js"></script>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css"/>
+    <style>
+        #timeserie {
+            width: 100%;
+            height: 400px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+
+
+<div class="container">
+    <h1>DynamoDB Timeserie example</h1>
+    <div class="row">
+        <form class="form-horizontal">
+            <div class="container">
+                <div class="row">
+                    <div class='col-xs-4' style="margin: 10px">
+                        <div class="form-group">
+
+                            <label for="sel1">Select granularity:</label>
+                            <select class="form-control" id="granularity">
+                                <option>Minute</option>
+                                <option selected="selected">Hour</option>
+                                <option>Day</option>
+                                <option>Month</option>
+                                <option>Year</option>
+                            </select>
+
+                            <label for="sel1">Select granularity:</label>
+                            <select class="form-control" id="fast-date">
+                                <option value='last5min'>Last 5 minutes</option>
+                                <option value='last10min'>Last 10 minutes</option>
+                                <option value='last30min'>Last 30 minutes</option>
+                                <option value='last1hour'>Last 1 hour</option>
+                                <option value='last3hour'>Last 3 hour</option>
+                                <option value='last6hour'>Last 6 hour</option>
+                                <option value='today'>Today</option>
+                                <option value='todaysofar' selected="selected">Today so
+                                    far
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class='col-xs-4' style="margin: 10px">
+                        <div class="form-group">
+                            <label for="datetimepicker_start">Start</label>
+                            <div class='input-group date' id='datetimepicker_start'>
+                                <input type='text' class="form-control"/>
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                            <label for="start">End</label>
+                            <div class='input-group date' id='datetimepicker_end'>
+                                <input type='text' class="form-control"/>
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div id="timeserie"></div>
+    </div>
+</div>
+
+
+<script>
+        function default_from() {
+            return moment().startOf('day')
+
+        }
+
+        function default_to() {
+            return moment()
+        }
+
+        //var timeserie_ctx = document.getElementById("timeserie").getContext('2d');
+        var myChart = undefined
+        var granularity = 'hour'
+
+        var timeseries = 'test-average,test-sum,test-last,test-max,test-min,test-abs_max,test-abs_min,test-count,test-retention'
+
+        var start = default_from().unix()
+        var end = default_to().unix()
+        var last_api_call = moment()
+
+
+        $(function() {
+            $('#datetimepicker_start').datetimepicker({
+                defaultDate: default_from()
+            });
+
+            $('#datetimepicker_start').on('dp.change', function(e) {
+                start = e.date.unix()
+                api_request()
+            })
+            $('#datetimepicker_end').datetimepicker({
+                defaultDate: default_to()
+            });
+
+            $('#datetimepicker_end').on('dp.change', function(e) {
+                end = e.date.unix()
+                api_request()
+            })
+
+            $("#granularity").change(function(e) {
+                e.preventDefault()
+                granularity = $("#granularity").val().toLowerCase()
+                api_request()
+            });
+
+            $("#fast-date").change(function(e) {
+                e.preventDefault()
+                fastdate = $("#fast-date").val().toLowerCase()
+
+                _start = undefined
+                _end = undefined
+
+                switch (fastdate) {
+                    case 'last5min':
+                        _start = moment().subtract(5, 'minute')
+                        _end = moment()
+                        break;
+                    case 'last10min':
+                        _start = moment().subtract(10, 'minute')
+                        _end = moment()
+                        break;
+                    case 'last30min':
+                        _start = moment().subtract(30, 'minute')
+                        _end = moment()
+                        break;
+                    case 'last1hour':
+                        _start = moment().subtract(1, 'hour')
+                        _end = moment()
+                        break;
+                    case 'last3hour':
+                        _start = moment().subtract(3, 'hour')
+                        _end = moment()
+                        break;
+                    case 'last6hour':
+                        _start = moment().subtract(6, 'hour')
+                        _end = moment()
+                        break;
+                    case 'today':
+                        _start = moment().startOf('day')
+                        _end = moment().endOf('day')
+                        break;
+                    case 'todaysofar':
+                        _start = moment().startOf('day')
+                        _end = moment()
+                        break;
+                }
+
+                $("#datetimepicker_start").data("DateTimePicker").date(_start)
+                $("#datetimepicker_end").data("DateTimePicker").date(_end)
+
+                start = _start.unix()
+                end = _end.unix()
+
+
+            })
+
+            setTimeout(function() {
+                api_request()
+            }, 1000)
+
+        });
+
+
+        function api_request() {
+
+            if (typeof(myChart) !== 'undefined') {
+                myChart.showLoading()
+            }
+
+            if (moment() - last_api_call >= 1000) {
+                start = $("#datetimepicker_start").data("DateTimePicker").date().unix()
+                end = $("#datetimepicker_end").data("DateTimePicker").date().unix()
+                var api = `https://xxxxxxxxxx.execute-api.eu-west-1.amazonaws.com/poc/data/${timeseries}/${granularity}?start=${start}&end=${end}`
+                $.ajax({
+                    url: api,
+                    success: function(result) {
+                        draw_plot(start, end, result)
+                        if (typeof(myChart) !== 'undefined') {
+                            myChart.hideLoading()
+                        }
+                    }
+                });
+                last_api_call = moment()
+            }
+        }
+
+
+
+        function draw_plot(start, end, result) {
+
+            var series = []
+            var serie_names = Object.keys(result)
+
+
+            Object.keys(result).forEach(function(key) {
+                let serie_values = result[key];
+                let serie_data = []
+
+                serie_values.forEach(function(value) {
+                    serie_data.push({
+                        value: [value[0] * 1000, value[1]]
+                    })
+                })
+
+                serie = {
+                    type: 'line',
+                    name: key,
+                    data: serie_data
+                }
+
+                series.push(serie)
+            });
+
+
+            option = {
+                title: {
+                    text: 'Test DynamoDB Timeseries',
+                    subtext: '',
+                    x: 'center',
+                    align: 'center'
+                },
+
+                grid: {
+                    bottom: 100
+                },
+
+                toolbox: {
+                    feature: {
+                        /*
+                        dataZoom: {
+                            yAxisIndex: 'none'
+                        },
+                        */
+                        restore: {},
+                        //saveAsImage: {}
+                    }
+                },
+
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        animation: false,
+                        label: {
+                            backgroundColor: '#505765'
+                        }
+                    }
+                },
+
+
+                legend: {
+                    data: serie_names,
+                    x: 'left'
+                },
+                dataZoom: [{
+                        show: true,
+                        realtime: true,
+                        start: 60,
+                        end: 100
+                    },
+                    {
+                        type: 'inside',
+                        realtime: true,
+                        start: 60,
+                        end: 100
+                    }
+
+                ],
+                xAxis: {
+                    type: 'time',
+                    splitLine: {
+                        show: false
+                    }
+                },
+
+                yAxis: [{
+                    name: 'value',
+                    type: 'value',
+                }],
+
+                series: series
+            };
+
+
+            if (typeof(myChart) === 'undefined') {
+                myChart = echarts.init(document.getElementById('timeserie'));
+            }
+            myChart.setOption(option);
+
+        }
+
+
+</script>
+</body>
+
+</html>
