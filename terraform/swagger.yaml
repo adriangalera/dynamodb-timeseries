@@ -44,6 +44,11 @@ paths:
             description: "Internal error"
           200:
             description: "Sucessfull operation"
+      x-amazon-apigateway-integration:
+        uri: ${db_lambda_uri_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"      
   /data/{timeseries}/{granularity}:
       get:
         tags:
@@ -90,6 +95,11 @@ paths:
             description: Sucessfull operation
             schema:
               $ref: "#/definitions/Timeserie"
+        x-amazon-apigateway-integration:
+          uri: ${db_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy" 
   /configuration:
     get:
         tags:
@@ -112,37 +122,12 @@ paths:
               type: array
               items:
                 $ref: "#/definitions/Configuration"
-  /configuration/{timeseries}:
-      get:
-        tags:
-        - "configuration"
-        summary: "Retrieve the configuration for the timeserie"
-        description: "Query the data for given timeseries, granularity and time interval"
-        operationId: "getConfiguration"
-        consumes:
-        - "application/json"
-        produces:
-        - "application/json"
-        parameters:
-        - in: "path"
-          name: "timeseries"
-          description: "Timeseries to query"
-          required: true
-          type: "array"
-          items:
-            type: "string"
-        responses:
-          '405':
-            description: Invalid input
-          '500':
-            description: Internal error
-          '200':
-            description: Sucessfull operation
-            schema:
-              type: array
-              items:
-                $ref: "#/definitions/Configuration"
-      post:
+        x-amazon-apigateway-integration:
+          uri: ${conf_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy"
+    post:
         tags:
           - "configuration"
         summary: "Set the configuration for the given timeserie"
@@ -176,40 +161,11 @@ paths:
               type: array
               items:
                 $ref: "#/definitions/Configuration"
-      put:
-        tags:
-          - "configuration"
-        summary: "Update the configuration for the given timeserie"
-        description: "Update the configuration for the given timeserie"
-        operationId: "updateConfiguration"
-        consumes:
-        - "application/json"
-        produces:
-        - "application/json"
-        parameters:
-          - in: "path"
-            name: "timeseries"
-            description: "Timeseries to set the configuration"
-            required: true
-            type: "string"
-          - in: body
-            name: configuration
-            description: "Timeserie configuration"
-            required: true
-            schema:
-              $ref: '#/definitions/Configuration'
-
-        responses:
-          '405':
-            description: Invalid input
-          '500':
-            description: Internal error
-          '200':
-            description: Sucessfull operation
-            schema:
-              type: array
-              items:
-                $ref: "#/definitions/Configuration"
+        x-amazon-apigateway-integration:
+          uri: ${conf_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy"                         
 definitions:
   Timeserie:
     type: object
@@ -219,14 +175,6 @@ definitions:
         type: "array"
         items:
           type: "number"
-    example:
-      'timeserie-1' :
-        -
-          - 1513157449
-          - 1.25
-        -
-          - 1513157450
-          - 1.30
   Configuration:
     type: object
     properties:

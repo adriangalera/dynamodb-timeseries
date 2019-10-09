@@ -457,12 +457,39 @@ def put_items(event, __context):
 
     try:
         insert_items = parse_insert_item(event)
-        # dynamo_db_insert(insert_items)
+        #dynamo_db_insert(insert_items)
         kinesis_insert(insert_items)
     except (KeyError, ValueError, TypeError), e:
         LOGGER.error('Cannot parse event for putting items')
         raise e
 
+def payload_from_api_get_event(event):
+    """Maps an API event to the expect payload"""
+    """
+        #        'timeseries': [timeserie1, timeserie2],
+        #        'start': start,
+        #        'end': end,
+        #        'granularity': constants.SECOND
+    """ 
+    timeseries = event['pathParameters']['timeseries'].split(",") 
+    start = event['queryStringParameters']['start']
+    end = event['queryStringParameters']['end']
+    granularity = event['pathParameters']['granularity']  
+    return {
+        'timeseries':timeseries,
+        'start':start,
+        'end':end,
+        'granularity':granularity
+    }
+
+def payload_from_api_post_event(event):
+    """Maps an API event to the expected payload"""
+    # event = {
+    #    'timeserie1': [(1, 100), (2, 100)],
+    #    'timeserie2': [(3, 100), (4, 100)],
+    # }
+    body = json.loads(event['body'])
+    return body
 
 def handler(event, __context__):
     """Handler function of the database lambda"""
@@ -473,15 +500,44 @@ def handler(event, __context__):
     # 'payload' : payload
     # }
 
+
+    is_api_request = False
+
+    # The request comes from an API    
+    if not 'operation' in event and 'httpMethod' in event:
+        is_api_request = True
+        httpMethod = event["httpMethod"].lower()
+        if  httpMethod in ["post", "put"]:
+            httpMethod = "post"
+        event['operation'] = httpMethod
+        event['payload'] = {}
+    LOGGER.debug('Received event %s', event)   
+
     if 'operation' in event:
         operation = event['operation']
         payload = event['payload']
         if operation == "get":
-            return query(payload, __context__)
+            if is_api_request:
+                payload = payload_from_api_get_event(event)
+            response = query(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body": json.dumps(response)}
+            else:
+                return response
         elif operation == "last":
-            return last(payload, __context__)
+            response = last(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body": json.dumps(response)}
+            else:
+                return response            
         elif operation == "post":
-            return put_items(payload, __context__)
+            if is_api_request:
+                payload = payload_from_api_post_event(event)            
+            response =  put_items(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body": json.dumps(response)}
+            else:
+                return response            
         else:
             raise ValueError('Invalid operation')
     else:

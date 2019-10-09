@@ -236,6 +236,8 @@ def delete_configuration_handler(event, context):
 
     return body_msg
 
+def map_post_api_event(event):
+    return event["body"]
 
 def handler(event, __context__):
     """Timeseries configuration lambda handler"""
@@ -244,18 +246,42 @@ def handler(event, __context__):
     # 'operation' : 'get|post'
     # payload: payload
     # }
+    is_api_request = False
 
+    # The request comes from an API    
+    if not 'operation' in event and 'httpMethod' in event:
+        is_api_request = True
+        httpMethod = event["httpMethod"].lower()
+        if  httpMethod in ["post", "put"]:
+            httpMethod = "post"
+        event['operation'] = httpMethod
+        event['payload'] = {}
     LOGGER.debug('Received event %s', event)
 
     if 'operation' in event:
         operation = event['operation']
         payload = event['payload']
         if operation == "get":
-            return get_configuration_handler(payload, __context__)
+            response = get_configuration_handler(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body": json.dumps(response)}
+            else:
+                return response
+
         elif operation == "post":
-            return update_configuration_handler(payload, __context__)
+            if is_api_request:
+                payload = map_post_api_event(event)
+            response =  update_configuration_handler(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body": response}
+            else:
+                return response
         elif operation == "delete":
-            return delete_configuration_handler(payload, __context__)
+            response = delete_configuration_handler(payload, __context__)
+            if is_api_request:
+                return {"statusCode": 200, "body" : json.dumps(response)}
+            else:
+                return response            
         else:
             raise ValueError('Invalid operation')
     else:

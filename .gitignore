@@ -2,3 +2,8 @@
 *.pyc
 tests/lambda.zip
 lambda.zip
+terraform/.terraform*
+terraform/.terraform
+lambda_payload.zip
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup

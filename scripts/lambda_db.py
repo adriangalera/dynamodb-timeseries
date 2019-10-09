@@ -5,13 +5,15 @@ import boto3
 import random
 import time
 import json
+session = boto3.Session(profile_name='gal', region_name="eu-west-1")
+client = session.client('lambda')
 
-client = boto3.client('lambda')
-lambda_name = 'test_ts_db'
+lambda_name = 'test_ocado_ts_db'
 timeserie = 'test-manual'
+
 while True:
     values = random.randint(-100, 100)
-    cur_time = long(time.time())
+    cur_time = int(time.time())
 
     val_tuple = (cur_time, values)
 
@@ -21,7 +23,7 @@ while True:
 
     event = json.dumps(event)
 
-    print 'Invoking lambda %s with event %s' % (lambda_name, event)
+    print ('Invoking lambda %s with event %s' % (lambda_name, event) )
 
     response = client.invoke(
         FunctionName=lambda_name,
@@ -29,6 +31,6 @@ while True:
         Payload=event,
     )
 
-    print str(response['Payload'].read())
+    print ( str(response['Payload'].read()) )
 
-    time.sleep(60)
+    time.sleep(10)

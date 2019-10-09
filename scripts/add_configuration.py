@@ -2,14 +2,15 @@
 import json
 import boto3
 
-lambda_function = 'test_ts_conf'
-client = boto3.client('lambda')
+lambda_function = 'test_ocado_ts_conf'
+session = boto3.Session(profile_name='gal', region_name="eu-west-1")
+client = session.client('lambda')
 
 event = {
     'operation': 'post',
     'payload': json.dumps({
         'timeserie': 'test-manual',
-        'aggregation_method': 'sum',
+        'aggregation_method': 'average',
         'timezone': 'Europe/Madrid',
         'retentions': {}
     })
@@ -17,7 +18,7 @@ event = {
 
 event = json.dumps(event)
 
-print 'Invoking lambda %s with event %s' % (lambda_function, event)
+print ('Invoking lambda %s with event %s' % (lambda_function, event))
 
 response = client.invoke(
     FunctionName=lambda_function,
@@ -25,4 +26,4 @@ response = client.invoke(
     Payload=event,
 )
 
-print str(response['Payload'].read())
+print (str(response['Payload'].read()))
