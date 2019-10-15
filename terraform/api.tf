@@ -1,13 +1,13 @@
 resource "aws_api_gateway_rest_api" "timeseries-api" {
- name = "${var.app-prefix}_timeserie_api"
- body = "${data.template_file.timeseries_api_swagger.rendered}"
+  name = "${var.app-prefix}_timeserie_api"
+  body = "${data.template_file.timeseries_api_swagger.rendered}"
 }
 
-data "template_file" timeseries_api_swagger{
+data "template_file" timeseries_api_swagger {
   template = "${file("./swagger.yaml")}"
   vars = {
     conf_lambda_uri_arn = "${aws_lambda_function.configuration-lambda.invoke_arn}"
-    db_lambda_uri_arn = "${aws_lambda_function.db-lambda.invoke_arn}"
+    db_lambda_uri_arn   = "${aws_lambda_function.db-lambda.invoke_arn}"
   }
 }
 

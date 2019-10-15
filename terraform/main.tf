@@ -1,5 +1,4 @@
 provider "aws" {
-  profile = "gal"
   region = "eu-west-1"
 }
 
@@ -11,3 +10,11 @@ variable "app-prefix" {
 data "aws_caller_identity" "current" { }
 data "aws_region" "current" {}
 
+terraform {
+  backend "s3" {
+    encrypt        = true
+    bucket         = "gal-terraform-state"
+    key            = "dynamodb-timeseries"
+    region         = "eu-west-1"
+  }
+}

@@ -1,14 +1,14 @@
 variable "lambda-payload-file" {
-  type = string
+  type    = string
   default = "../lambda_payload.zip"
 }
 
 resource "aws_iam_role" "lambda_iam_role" {
 
   for_each = {
-    ROLLUP: "rollup_lambda_iam_role",
-    CONF: "conf_lambda_iam_role",
-    DB:  "db",
+    ROLLUP : "rollup_lambda_iam_role",
+    CONF : "conf_lambda_iam_role",
+    DB : "db",
   }
   name = each.value
 
@@ -27,11 +27,16 @@ resource "aws_iam_role" "lambda_iam_role" {
   ]
 }
 EOF
+
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_iam_role_policy" "rollup_lambda_iam_role_policy" {
-  name = "dynamodb_lambda_iam_role_policy"
-  role = "${aws_iam_role.lambda_iam_role["ROLLUP"].id}"
+  name   = "dynamodb_lambda_iam_role_policy"
+  role   = "${aws_iam_role.lambda_iam_role["ROLLUP"].id}"
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -99,8 +104,8 @@ POLICY
 }
 
 resource "aws_iam_role_policy" "conf_lambda_iam_role_policy" {
-  name = "conf_lambda_iam_role_policy"
-  role = "${aws_iam_role.lambda_iam_role["CONF"].id}"
+  name   = "conf_lambda_iam_role_policy"
+  role   = "${aws_iam_role.lambda_iam_role["CONF"].id}"
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -132,8 +137,8 @@ POLICY
 }
 
 resource "aws_iam_role_policy" "db_lambda_iam_role_policy" {
-  name = "conf_lambda_iam_role_policy"
-  role = "${aws_iam_role.lambda_iam_role["DB"].id}"
+  name   = "conf_lambda_iam_role_policy"
+  role   = "${aws_iam_role.lambda_iam_role["DB"].id}"
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -207,8 +212,8 @@ resource "aws_lambda_function" "rollup-lambda" {
   }
 
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }
 
@@ -229,8 +234,8 @@ resource "aws_lambda_function" "db-lambda" {
   }
 
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }
 
@@ -250,8 +255,8 @@ resource "aws_lambda_function" "configuration-lambda" {
     }
   }
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }
 

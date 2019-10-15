@@ -1,8 +1,8 @@
 resource "aws_kinesis_stream" "insertion-stream" {
-  name = "${var.app-prefix}_ts_stream"
+  name        = "${var.app-prefix}_ts_stream"
   shard_count = 1
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }

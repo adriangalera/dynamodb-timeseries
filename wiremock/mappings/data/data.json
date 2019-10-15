@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/data/[a-zA-Z0-9-\\_]+/[a-zA-Z0-9-\\_]+",
+    "queryParameters": {
+      "start": {
+        "matches": "^[0-9]*$"
+      },
+      "end": {
+        "matches": "^[0-9]*$"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "data/data.json",
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "*"
+    },
+    "transformers": [
+      "response-template"
+    ]
+  }
+}

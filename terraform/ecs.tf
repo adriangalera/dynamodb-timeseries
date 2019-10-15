@@ -1,13 +1,17 @@
 resource "aws_ecs_cluster" "consumer-cluster" {
   name = "${var.app-prefix}_consumer_cluster"
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }
 
 resource "aws_ecr_repository" "ecr_repo" {
   name = "${var.app-prefix}_repo"
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 output "repository-url" {
@@ -15,7 +19,7 @@ output "repository-url" {
 }
 
 resource "aws_iam_role" "ecs_container_iam_role" {
-  name = "${var.app-prefix}_ecs_execution_role"
+  name               = "${var.app-prefix}_ecs_execution_role"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -29,10 +33,14 @@ resource "aws_iam_role" "ecs_container_iam_role" {
   }]
 }
 POLICY
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_iam_role" "ecs_task_iam_role" {
-  name = "${var.app-prefix}_ecs_task_role"
+  name               = "${var.app-prefix}_ecs_task_role"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -46,11 +54,15 @@ resource "aws_iam_role" "ecs_task_iam_role" {
   }]
 }
 POLICY
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_iam_role_policy" "ecs_container_iam_role_policy" {
-  name = "${var.app-prefix}_ecs_execution_role_policy"
-  role = "${aws_iam_role.ecs_container_iam_role.id}"
+  name   = "${var.app-prefix}_ecs_execution_role_policy"
+  role   = "${aws_iam_role.ecs_container_iam_role.id}"
   policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -74,8 +86,8 @@ POLICY
 }
 
 resource "aws_iam_role_policy" "ecs_task_iam_role_policy" {
-  name = "${var.app-prefix}_ecs_task_role_policy"
-  role = "${aws_iam_role.ecs_task_iam_role.id}"
+  name   = "${var.app-prefix}_ecs_task_role_policy"
+  role   = "${aws_iam_role.ecs_task_iam_role.id}"
   policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -115,14 +127,14 @@ POLICY
 }
 
 resource "aws_ecs_task_definition" "consumer_task_definition" {
-  family = "${var.app-prefix}_consumer"
-  requires_compatibilities = [ "FARGATE" ]
-  network_mode =  "awsvpc"
-  execution_role_arn = "${aws_iam_role.ecs_container_iam_role.arn}"
-  task_role_arn = "${aws_iam_role.ecs_task_iam_role.arn}"
-  cpu = 256
-  memory = 512
-  container_definitions = <<EOF
+  family                   = "${var.app-prefix}_consumer"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  execution_role_arn       = "${aws_iam_role.ecs_container_iam_role.arn}"
+  task_role_arn            = "${aws_iam_role.ecs_task_iam_role.arn}"
+  cpu                      = 256
+  memory                   = 512
+  container_definitions    = <<EOF
 [
   {
     "name": "${var.app-prefix}_consumer",
@@ -144,23 +156,35 @@ resource "aws_ecs_task_definition" "consumer_task_definition" {
 EOF
 
   tags = {
-    Name        = "product"
-    Environment = "dynamodb-timeseries"
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
   }
 }
 
 resource "aws_vpc" "main" {
   cidr_block = "172.17.0.0/16"
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_subnet" "public" {
   cidr_block              = "${aws_vpc.main.cidr_block}"
   vpc_id                  = "${aws_vpc.main.id}"
   map_public_ip_on_launch = true
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
+  tags = {
+    terraform = "yes"
+    app       = "dynamodb-timeseries"
+  }
 }
 
 resource "aws_route" "internet_access" {
@@ -169,16 +193,16 @@ resource "aws_route" "internet_access" {
   gateway_id             = "${aws_internet_gateway.gw.id}"
 }
 
-resource "aws_ecs_service" "hello_world" {
-  name = "${var.app-prefix}_consumer_service"
-  cluster = "${aws_ecs_cluster.consumer-cluster.id}"
-  task_definition = aws_ecs_task_definition.consumer_task_definition.arn
-  launch_type = "FARGATE"
-  desired_count = 1
-  deployment_maximum_percent = 100
+resource "aws_ecs_service" "ecs_consumer_service" {
+  name                               = "${var.app-prefix}_consumer_service"
+  cluster                            = "${aws_ecs_cluster.consumer-cluster.id}"
+  task_definition                    = aws_ecs_task_definition.consumer_task_definition.arn
+  launch_type                        = "FARGATE"
+  desired_count                      = 1
+  deployment_maximum_percent         = 100
   deployment_minimum_healthy_percent = 0
-  network_configuration  {
-    assign_public_ip= true
-    subnets = ["${aws_subnet.public.id}"]
+  network_configuration {
+    assign_public_ip = true
+    subnets          = ["${aws_subnet.public.id}"]
   }
 }
