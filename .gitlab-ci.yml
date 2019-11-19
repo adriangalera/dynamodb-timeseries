@@ -155,6 +155,7 @@ build frontend dev:
     - schedules    
 
 delete_stack dev: 
+  stage: delete dev
   <<: *terraform_image
   only:
     - schedules
