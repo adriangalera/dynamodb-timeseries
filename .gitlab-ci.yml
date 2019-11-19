@@ -78,6 +78,8 @@ validate:
   script:
     - terraform validate
   cache: {}
+  except:
+    - schedules
 
 test:
   image: node:12.13-alpine
@@ -86,6 +88,8 @@ test:
     - cd tsfrontend
     - npm install
     - npm test
+  except:
+    - schedules
 
 build lambdas:
   stage: build lambdas
@@ -97,16 +101,22 @@ build lambdas:
     paths:
       - lambda_payload.zip
   cache: {}
+  except:
+    - schedules
 
 plan dev:
   stage: terraform plan dev
   <<: *plan
   cache: {}
+  except:
+    - schedules  
 
 apply dev:
   stage: terraform apply dev
   <<: *apply
   cache: {}
+  except:
+    - schedules  
 
 docker push dev:
   services:
@@ -123,6 +133,8 @@ docker push dev:
     - docker tag kinesisconsumer:latest ${REPO_URL}:latest
     - docker push ${REPO_URL}:latest
   cache: {}
+  except:
+    - schedules  
 
 build frontend dev:
   stage: deploy dev
@@ -139,6 +151,8 @@ build frontend dev:
     - REACT_APP_API_URL=${API_URL} npm run build
     - aws s3 sync build s3://${BUCKET} --acl public-read 
     - echo "App is ready at ${BUCKET_URL}"
+  except:
+    - schedules    
 
 delete_stack dev: 
   <<: *terraform_image
