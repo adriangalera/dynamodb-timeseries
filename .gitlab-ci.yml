@@ -71,6 +71,7 @@ stages:
   - terraform plan dev # do terraform plan
   - terraform apply dev # do terraform apply
   - deploy dev # do docker push && frontend build and sync to s3
+  - delete dev # delete all terraform
 
 validate:
   <<: *terraform_image
