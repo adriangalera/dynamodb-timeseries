@@ -130,6 +130,33 @@ paths:
           httpMethod: "POST"
           type: "aws_proxy" 
       options:
+        parameters:
+          - in: "path"
+            name: "timeseries"
+            description: "Timeseries to query"
+            required: true
+            type: "array"
+            items:
+              type: "string"
+          - in: "path"
+            name: "granularity"
+            description: "Granularity to query"
+            required: true
+            type: "string"
+            enum: [second,minute,hour,day,month,year]
+          - in: "query"
+            name: "start"
+            description: "Unix timestamp that define the start of query interval"
+            required: true
+            type: "integer"
+            format: "int64"
+          - in: "query"
+            name: "end"
+            description: "Unix timestamp that define the end of query interval"
+            required: true
+            type: "integer"
+            format: "int64" 
+
         consumes:
         - "application/json"
         produces:
