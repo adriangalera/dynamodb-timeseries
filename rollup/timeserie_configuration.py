@@ -264,7 +264,7 @@ def handler(event, __context__):
         if operation == "get":
             response = get_configuration_handler(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body": json.dumps(response)}
+                return {"statusCode": 200, "body": json.dumps(response), "headers": {"Access-Control-Allow-Origin" : "*"}}
             else:
                 return response
 
@@ -273,13 +273,13 @@ def handler(event, __context__):
                 payload = map_post_api_event(event)
             response =  update_configuration_handler(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body": response}
+                return {"statusCode": 200, "body": response, "headers": {"Access-Control-Allow-Origin" : "*"}}
             else:
                 return response
         elif operation == "delete":
             response = delete_configuration_handler(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body" : json.dumps(response)}
+                return {"statusCode": 200, "body" : json.dumps(response), "headers": {"Access-Control-Allow-Origin" : "*"}}
             else:
                 return response            
         else:

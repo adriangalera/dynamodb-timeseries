@@ -521,13 +521,13 @@ def handler(event, __context__):
                 payload = payload_from_api_get_event(event)
             response = query(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body": json.dumps(response)}
+                return {"statusCode": 200, "body": json.dumps(response), "headers": {"Access-Control-Allow-Origin" : "*"}}
             else:
                 return response
         elif operation == "last":
             response = last(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body": json.dumps(response)}
+                return {"statusCode": 200, "body": json.dumps(response), "headers": {"Access-Control-Allow-Origin" : "*"}}
             else:
                 return response            
         elif operation == "post":
@@ -535,7 +535,7 @@ def handler(event, __context__):
                 payload = payload_from_api_post_event(event)            
             response =  put_items(payload, __context__)
             if is_api_request:
-                return {"statusCode": 200, "body": json.dumps(response)}
+                return {"statusCode": 200, "body": json.dumps(response), "headers": {"Access-Control-Allow-Origin" : "*"} }
             else:
                 return response            
         else:
