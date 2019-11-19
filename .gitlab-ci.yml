@@ -13,6 +13,7 @@
   - apk add zip
 
 .install_aws_cli : &install_aws_cli
+  - rm -rf ./awscli-bundle
   - apk add zip curl python
   - curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
   - unzip -o awscli-bundle.zip
