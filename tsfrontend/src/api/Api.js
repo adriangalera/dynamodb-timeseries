@@ -26,8 +26,8 @@ export const fetchGraphData = (request) => {
         granularity: "second"
     }
     */
-
-    const fetchDataUrl = `${baseApiUrl}/data/${request.timeserie}/${request.granularity}?start=${request.start}&end=${request.end}`
+    const encodedTimeseries = encodeURIComponent(request.timeserie)
+    const fetchDataUrl = `${baseApiUrl}/data/${encodedTimeseries}/${request.granularity}?start=${request.start}&end=${request.end}`
     return fetch(fetchDataUrl)
         .then(res => res.json())
         .catch((err) => handleError(err))
