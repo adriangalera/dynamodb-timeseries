@@ -5,15 +5,15 @@ cd ${base_dir}
 zip -r -9 -j lambda_payload.zip rollup/*.py
 
 # Build the frontend
-cd ${base_dir}/tsfrontend
-CI=true npm test
-VALID="$(npm test | grep -o 'failing')"
+#cd ${base_dir}/tsfrontend
+#CI=true npm test
+#VALID="$(npm test | grep -o 'failing')"
 
-CI=true npm run build
+#CI=true npm run build
 
 # Apply terraform
-#cd ${base_dir}/terraform
-#terraform apply -input=false -auto-approve
+cd ${base_dir}/terraform
+terraform apply -input=false -auto-approve
 #export repo_url=$(terraform output repository-url)
 
 # Docker build image and push

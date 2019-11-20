@@ -4,7 +4,7 @@ import os
 from decimal import Decimal
 import json
 import time
-import urllib.parse
+from urllib import unquote
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -473,7 +473,7 @@ def payload_from_api_get_event(event):
         #        'granularity': constants.SECOND
     """ 
     timeseries = event['pathParameters']['timeseries']
-    timeseries = urllib.parse.unquote(timeseries).split(",")
+    timeseries = unquote(timeseries).split(",")
     start = event['queryStringParameters']['start']
     end = event['queryStringParameters']['end']
     granularity = event['pathParameters']['granularity']  
