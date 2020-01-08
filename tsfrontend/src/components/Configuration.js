@@ -15,8 +15,8 @@ const fixedTimeSeries = {
         desc: "Presense sensor in an emergency_exit",
         agg: "count"
     },
-    "webshop/customers": {
-        desc: "customers in webshop",
+    "web/customers": {
+        desc: "customers in web",
         agg: "sum"
     }
 }
@@ -32,7 +32,7 @@ export const Explanation = () => {
 
     for (let ts of Object.keys(fixedTimeSeries)) {
         const tsDef = fixedTimeSeries[ts]
-        tsElements.push(<Timeserie key={ts} ts={ts} desc={tsDef.desc} agg={ts.agg} />)
+        tsElements.push(<Timeserie key={ts} ts={ts} desc={tsDef.desc} agg={tsDef.agg} />)
     }
 
     return <div>
