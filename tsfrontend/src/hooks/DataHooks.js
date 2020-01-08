@@ -5,24 +5,25 @@ import { useAppContext } from "./ContextHook";
 import moment from 'moment'
 
 export const processInterval = (interval) => {
+    console.log(interval)
     const now = moment()
     let from, to, granularity;
     switch (interval) {
-        case "last_10_seconds":
-            from = moment(now).subtract(10, 'seconds').unix();
+        case "last_60_seconds":
+            from = moment(now).subtract(60, 'seconds').unix();
             to = now.unix();
             granularity = "second"
             return { from, to, granularity }
-        case "last_minute":
-            from = moment(now).subtract(1, 'minute').unix();
+        case "last_5_minutes":
+            from = moment(now).subtract(5, 'minutes').unix();
             to = now.unix();
             granularity = "minute"
             return { from, to, granularity }
-        case "last_hour":
-            from = moment(now).subtract(1, 'hour').unix();
+        case "last_60_minutes":
+            from = moment(now).subtract(60, 'minutes').unix();
             to = now.unix();
-            granularity = "hour"
-            return { from, to, granularity }
+            granularity = "minute"
+            return { from, to, granularity }            
         default:
             throw new Error('Unexpected action');
     }
@@ -30,7 +31,6 @@ export const processInterval = (interval) => {
 
 export const useSelectorHook = (defaultValues) => {
     const { dispatch } = useAppContext();
-    const [intervalId, setIntervalId] = useState(undefined)
     const [inputs, setInputs] = useState(defaultValues);
 
     const handleSubmit = (event) => {
@@ -60,12 +60,7 @@ export const useSelectorHook = (defaultValues) => {
                 });
             }
         };
-        if (intervalId) {
-            clearInterval(intervalId)
-            setIntervalId(undefined)
-        }
         queryGraphData(inputs)
-        setIntervalId(setInterval(() => queryGraphData(inputs), 1000))
     }
 
     const handleInputChange = (event) => {
@@ -103,6 +98,9 @@ export const useGraphData = () => {
             },
             yAxis: {
                 type: "value"
+            },
+            tooltip: {
+                trigger: 'axis'
             },
             series: series
         }

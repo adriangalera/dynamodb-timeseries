@@ -26,6 +26,9 @@ describe("Data hook", () => {
             yAxis: {
                 type: "value"
             },
+            tooltip: {
+                trigger: 'axis'
+            },            
             series: []
         }
         expect(graphConfiguration).toStrictEqual(expectedGraphConfiguration)
@@ -80,6 +83,9 @@ describe("Data hook", () => {
             yAxis: {
                 type: "value"
             },
+            tooltip: {
+                trigger: 'axis'
+            },            
             series: [expectedSerie]
         }
         expect(graphConfiguration).toStrictEqual(expectedGraphConfiguration)
@@ -169,31 +175,21 @@ describe("Data hook", () => {
             yAxis: {
                 type: "value"
             },
+            tooltip: {
+                trigger: 'axis'
+            },            
             series: [expectedSerie1, expectedSerie2]
         }
         expect(graphConfiguration).toStrictEqual(expectedGraphConfiguration)
     })
 
-    it("should process last_10_seconds", () => {
+    it("should process last_60_seconds", () => {
         const now = moment()
-        const expectedfrom = moment(now).subtract(10, 'second').unix();
+        const expectedfrom = moment(now).subtract(60, 'seconds').unix();
         const expectedto = now.unix();
         const expectedgranularity = "second"
-        const { from, to, granularity } = processInterval("last_10_seconds")
-        expect(from).toBe(expectedfrom)
-        expect(to).toBe(expectedto)
-        expect(granularity).toBe(expectedgranularity)
-        expect(expectedto - expectedfrom).toBe(10)
-        expect(to - from).toBe(10)
-    })
 
-    it("should process last_minute", () => {
-        const now = moment()
-        const expectedfrom = moment(now).subtract(1, 'minute').unix();
-        const expectedto = now.unix();
-        const expectedgranularity = "minute"
-
-        const { from, to, granularity } = processInterval("last_minute")
+        const { from, to, granularity } = processInterval("last_60_seconds")
         expect(from).toBe(expectedfrom)
         expect(to).toBe(expectedto)
         expect(granularity).toBe(expectedgranularity)
@@ -201,17 +197,4 @@ describe("Data hook", () => {
         expect(to - from).toBe(60)
     })
 
-    it("should process last_hour", () => {
-        const now = moment()
-        const expectedfrom = moment(now).subtract(1, 'hour').unix();
-        const expectedto = now.unix();
-        const expectedgranularity = "hour"
-
-        const { from, to, granularity } = processInterval("last_hour")
-        expect(from).toBe(expectedfrom)
-        expect(to).toBe(expectedto)
-        expect(granularity).toBe(expectedgranularity)
-        expect(expectedto - expectedfrom).toBe(3600)
-        expect(to - from).toBe(3600)
-    })
 })

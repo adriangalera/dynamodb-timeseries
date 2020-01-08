@@ -11,10 +11,6 @@ const fixedTimeSeries = {
         desc: "Temperature sensor in room",
         agg: "average"
     },
-    "emergency_exit/presence": {
-        desc: "Presense sensor in an emergency_exit",
-        agg: "count"
-    },
     "web/customers": {
         desc: "customers in web",
         agg: "sum"
