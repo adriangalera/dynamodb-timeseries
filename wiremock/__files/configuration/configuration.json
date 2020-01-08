@@ -1,0 +1,16 @@
+[
+  {
+    "aggregation_method": "average",
+    "timezone": "Europe/Madrid",
+    "default": false,
+    "retentions": {
+      "hour": 16070400,
+      "month": 96422400,
+      "second": 259200,
+      "year": 321408000,
+      "day": 32140800,
+      "minute": 2678400
+    },
+    "timeserie": "test-manual"
+  }
+]

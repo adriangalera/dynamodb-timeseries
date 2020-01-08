@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 dependencies = ["boto3"]
-test_dependencies = ["sfdockertest"]
+test_dependencies = []
 
 setup(name='dynamo-db-time-series',
       version='0.0.6',

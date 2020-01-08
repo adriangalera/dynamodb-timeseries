@@ -1,0 +1,318 @@
+swagger: "2.0"
+info:
+  description: "This is an API to interact with a DynamoDB-based timeseries database"
+  version: "1.0.0"
+  title: "Timeserie"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "adrian.galera.87@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/"
+tags:
+- name: "data"
+  description: "Everything about your data"
+- name: "configuration"
+  description: "Timeseries configuration"
+schemes:
+- "http"
+paths:
+  /data:
+    post:
+      tags:
+      - "data"
+      summary: "Add the data to the datastore"
+      description: "Add the data in the body to the DynamoDB datastore in the lower granularity. Rollup aggregations will be performed to the upper granularities"
+      operationId: "addData"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Timeseries objects that will be added to the datastore"
+        required: true
+        schema:
+              $ref: "#/definitions/Timeserie"
+      responses:
+          405:
+            description: "Invalid input"
+          500:
+            description: "Internal error"
+          200:
+            description: "Sucessfull operation"
+      x-amazon-apigateway-integration:
+        uri: ${db_lambda_uri_arn}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"      
+    options:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"  
+  /data/{timeseries}/{granularity}:
+      get:
+        tags:
+        - "data"
+        summary: "Retrieve the data from the database."
+        description: "Query the data for given timeseries, granularity and time interval"
+        operationId: "getData"
+        consumes:
+        - "application/json"
+        produces:
+        - "application/json"
+        parameters:
+        - in: "path"
+          name: "timeseries"
+          description: "Timeseries to query"
+          required: true
+          type: "array"
+          items:
+            type: "string"
+        - in: "path"
+          name: "granularity"
+          description: "Granularity to query"
+          required: true
+          type: "string"
+          enum: [second,minute,hour,day,month,year]
+        - in: "query"
+          name: "start"
+          description: "Unix timestamp that define the start of query interval"
+          required: true
+          type: "integer"
+          format: "int64"
+        - in: "query"
+          name: "end"
+          description: "Unix timestamp that define the end of query interval"
+          required: true
+          type: "integer"
+          format: "int64"
+        responses:
+          '405':
+            description: Invalid input
+          '500':
+            description: Internal error
+          '200':
+            description: Sucessfull operation
+            schema:
+              $ref: "#/definitions/Timeserie"
+        x-amazon-apigateway-integration:
+          uri: ${db_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy" 
+      options:
+        parameters:
+          - in: "path"
+            name: "timeseries"
+            description: "Timeseries to query"
+            required: true
+            type: "array"
+            items:
+              type: "string"
+          - in: "path"
+            name: "granularity"
+            description: "Granularity to query"
+            required: true
+            type: "string"
+            enum: [second,minute,hour,day,month,year]
+          - in: "query"
+            name: "start"
+            description: "Unix timestamp that define the start of query interval"
+            required: true
+            type: "integer"
+            format: "int64"
+          - in: "query"
+            name: "end"
+            description: "Unix timestamp that define the end of query interval"
+            required: true
+            type: "integer"
+            format: "int64" 
+
+        consumes:
+        - "application/json"
+        produces:
+        - "application/json"
+        responses:
+          200:
+            description: "200 response"
+            schema:
+              $ref: "#/definitions/Empty"
+            headers:
+              Access-Control-Allow-Origin:
+                type: "string"
+              Access-Control-Allow-Methods:
+                type: "string"
+              Access-Control-Allow-Headers:
+                type: "string"
+        x-amazon-apigateway-integration:
+          responses:
+            default:
+              statusCode: "200"
+              responseParameters:
+                method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+                method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+                method.response.header.Access-Control-Allow-Origin: "'*'"
+          passthroughBehavior: "when_no_match"
+          requestTemplates:
+            application/json: "{\"statusCode\": 200}"
+          type: "mock"  
+  /configuration:
+    get:
+        tags:
+        - "configuration"
+        summary: "Retrieve the configuration for all the timeseries"
+        description: "Query the data for given timeseries, granularity and time interval"
+        operationId: "getAllConfiguration"
+        consumes:
+        - "application/json"
+        produces:
+        - "application/json"
+        responses:
+          '405':
+            description: Invalid input
+          '500':
+            description: Internal error
+          '200':
+            description: Sucessfull operation
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/Configuration"
+        x-amazon-apigateway-integration:
+          uri: ${conf_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy"
+    post:
+        tags:
+          - "configuration"
+        summary: "Set the configuration for the given timeserie"
+        description: "Set the configuration for the given timeserie"
+        operationId: "setConfiguration"
+        consumes:
+        - "application/json"
+        produces:
+        - "application/json"
+        parameters:
+          - in: "path"
+            name: "timeseries"
+            description: "Timeseries to set the configuration"
+            required: true
+            type: "string"
+          - in: body
+            name: configuration
+            description: "Timeserie configuration"
+            required: true
+            schema:
+              $ref: '#/definitions/Configuration'
+
+        responses:
+          '405':
+            description: Invalid input
+          '500':
+            description: Internal error
+          '200':
+            description: Sucessfull operation
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/Configuration"
+        x-amazon-apigateway-integration:
+          uri: ${conf_lambda_uri_arn}
+          passthroughBehavior: "when_no_match"
+          httpMethod: "POST"
+          type: "aws_proxy"                         
+    options:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
+definitions:
+  Timeserie:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        type: "array"
+        items:
+          type: "number"
+  Configuration:
+    type: object
+    properties:
+      timeserie:
+        type: string
+      aggregation:
+        type: string
+        enum:
+          - average
+          - sum
+          - last
+          - max
+          - min
+          - abs_max
+          - abs_min
+          - count
+      default:
+        type: boolean
+      retention:
+        type: object
+        additionalProperties:
+          type: integer
+      timezone:
+        type: string
+  Empty:
+    type: "object"
+    title: "Empty Schema"

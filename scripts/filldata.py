@@ -6,7 +6,7 @@ import random
 import time
 
 TABLE = "timeseries_second"
-
+session = boto3.Session(profile_name='gal')
 
 def item_to_dynamo_db_item(item):
     """Convert each item into DynamoDB format"""
@@ -17,7 +17,6 @@ def item_to_dynamo_db_item(item):
         'value': {'N': str(item['value'])},
         'ttl': {'N': str(now + (1 * 60))},
     }
-
 
 def item_to_dynamo_db_item_batch(item):
     """Convert each item into DynamoDB format"""
@@ -32,8 +31,7 @@ def item_to_dynamo_db_item_batch(item):
 
 def insert_values_one_by_one(items):
     client = boto3.client('dynamodb',
-                          aws_access_key_id=aws_credentials.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=aws_credentials.AWS_SECRET_KEY,
+                            
                           region_name=aws_credentials.AWS_REGION
                           )
     for item in items:

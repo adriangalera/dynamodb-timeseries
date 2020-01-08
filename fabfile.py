@@ -59,7 +59,7 @@ def publishlambdas(use_case):
 
 
 def publishweb():
-    """Publish the contents of the web to poc.sensefields.com"""
+    """Publish the contents of the web to an ec2 instance"""
     sudo('mkdir -p /var/www/html/ddbtime')
     sudo('chmod 0777 /var/www/html/ddbtime')
     put('web/chartjs.html', '/var/www/html/ddbtime/web')

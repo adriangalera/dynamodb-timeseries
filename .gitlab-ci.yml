@@ -1,0 +1,168 @@
+.set_env_vars: &set_env_vars
+  - curenv=`echo ${CI_JOB_STAGE} | tr a-z A-Z | awk '{print $NF}'`
+  - env_access_key="${curenv}_AWS_ACCESS_KEY_ID"
+  - env_secret_access_key="${curenv}_AWS_SECRET_ACCESS_KEY"
+  - echo "Searching for ${env_access_key} and ${env_secret_access_key}"
+  - eval AWS_ACCESS_KEY_ID=\$$env_access_key
+  - eval AWS_SECRET_ACCESS_KEY=\$$env_secret_access_key
+  - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+  - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+  - export AWS_DEFAULT_REGION="eu-west-1"
+
+.install_zip: &install_zip
+  - apk add zip
+
+.install_aws_cli : &install_aws_cli
+  - rm -rf ./awscli-bundle
+  - apk add zip curl python
+  - curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+  - unzip -o awscli-bundle.zip
+  - ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+  - aws --version
+
+.terraform_image: &terraform_image
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+.plan: &plan
+  <<: *terraform_image
+  script:
+    - rm -rf .terraform
+    - *set_env_vars
+    - cd terraform
+    - terraform init
+    - terraform plan -out "planfile"
+  artifacts:
+    paths:
+      - terraform/planfile
+
+.apply: &apply
+  <<: *terraform_image
+  script:
+    - rm -rf .terraform
+    - *set_env_vars
+    - cd terraform
+    - terraform init
+    - terraform apply -input=false "planfile"
+    - mkdir tf-outputs
+    - terraform output repository-url > tf-outputs/repository-url
+    - terraform output timeseries-dev-api > tf-outputs/timeseries-dev-api
+    - terraform output frontend-bucket-url > tf-outputs/frontend-bucket-url
+    - terraform output frontend-bucket > tf-outputs/frontend-bucket
+  when: manual
+  artifacts:
+    paths:
+      - terraform/tf-outputs
+  allow_failure: false
+
+cache:
+  untracked: true
+  key: "$CI_BUILD_REF_NAME-node-modules"
+  paths:
+    - tsfrontend/node_modules/
+
+stages:
+  - terraform validate # terraform validate
+  - test # test react frontend (test for python are deprecated)
+  - build lambdas # build the react frontend and python lambda zips
+  - terraform plan dev # do terraform plan
+  - terraform apply dev # do terraform apply
+  - deploy dev # do docker push && frontend build and sync to s3
+  - delete dev # delete all terraform
+
+validate:
+  <<: *terraform_image
+  stage: terraform validate
+  script:
+    - terraform validate
+  cache: {}
+  except:
+    - schedules
+
+test:
+  image: node:12.13-alpine
+  stage: test
+  script:
+    - cd tsfrontend
+    - npm install
+    - npm test
+  except:
+    - schedules
+
+build lambdas:
+  stage: build lambdas
+  image: alpine
+  script:
+    - *install_zip
+    - zip -r -9 -j lambda_payload.zip rollup/*.py
+  artifacts:
+    paths:
+      - lambda_payload.zip
+  cache: {}
+  except:
+    - schedules
+
+plan dev:
+  stage: terraform plan dev
+  <<: *plan
+  cache: {}
+  except:
+    - schedules  
+
+apply dev:
+  stage: terraform apply dev
+  <<: *apply
+  cache: {}
+  except:
+    - schedules  
+
+docker push dev:
+  services:
+    - docker:dind
+  stage: deploy dev
+  image: docker
+  script:
+    - export DOCKER_HOST=tcp://docker:2375
+    - REPO_URL=$(cat terraform/tf-outputs/repository-url)
+    - *install_aws_cli
+    - *set_env_vars
+    - $(aws ecr get-login --region eu-west-1 --no-include-email)
+    - docker build -f kinesisconsumer/Dockerfile -t kinesisconsumer:latest .
+    - docker tag kinesisconsumer:latest ${REPO_URL}:latest
+    - docker push ${REPO_URL}:latest
+  cache: {}
+  except:
+    - schedules  
+
+build frontend dev:
+  stage: deploy dev
+  image: node:12.13-alpine
+  script:
+    - BUCKET=$(cat terraform/tf-outputs/frontend-bucket)
+    - BUCKET_URL=$(cat terraform/tf-outputs/frontend-bucket-url)
+    - API_URL=$(cat terraform/tf-outputs/timeseries-dev-api)
+    - echo "API is ${API_URL}, bucket is ${BUCKET}, bucket url is ${BUCKET_URL}"
+    - *install_aws_cli
+    - *set_env_vars
+    - cd tsfrontend
+    - npm install
+    - REACT_APP_API_URL=${API_URL} npm run build
+    - aws s3 sync build s3://${BUCKET} --acl public-read 
+    - echo "App is ready at ${BUCKET_URL}"
+  except:
+    - schedules    
+
+delete_stack dev: 
+  stage: delete dev
+  <<: *terraform_image
+  only:
+    - schedules
+  script:
+    - rm -rf .terraform
+    - *set_env_vars
+    - cd terraform
+    - terraform init
+    - terraform destroy -input=false -auto-approve
