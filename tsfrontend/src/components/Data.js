@@ -26,7 +26,7 @@ export const Selectors = () => {
         "from": "",
         "to": "",
         "granularity": "second",
-        "quickinternvals": "last_60_seconds"
+        "quickinternvals": "last_10_seconds"
     }
     const { inputs, handleInputChange, handleSubmit } = useSelectorHook(defaultValues);
     if (inputs.timeserie === undefined && timeseries[0]) {
@@ -53,7 +53,7 @@ export const Selectors = () => {
             </Col>
             */}
             <Col>
-                <Form.Label>Quick interval</Form.Label>
+                <Form.Label>Query from</Form.Label>
             </Col>
             {/*
             <Col>
@@ -82,9 +82,9 @@ export const Selectors = () => {
             */}
             <Col>
                 <Form.Control as="select" name="quickinternvals" onChange={handleInputChange} value={inputs.quickinternvals}>
-                    <option value="last_60_seconds">Last 60 seconds</option>
-                    <option value="last_5_minutes">Last 5 minutes</option>
-                    <option value="last_60_minutes">Last 60 minutes</option>
+                    <option value="last_10_seconds">10 seconds ago (seconds)</option>
+                    <option value="last_5_minutes">5 minutes ago (minutes)</option>
+                    <option value="last_2_hour">2 hours ago (hours)</option>
                 </Form.Control>
             </Col>
             {/*

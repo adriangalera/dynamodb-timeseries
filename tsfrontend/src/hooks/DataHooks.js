@@ -1,66 +1,86 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { fetchGraphData } from '../api/Api';
 import { SET_GRAPH_DATA, SET_API_ERROR } from '../reducers/reducer';
 import { useAppContext } from "./ContextHook";
 import moment from 'moment'
 
-export const processInterval = (interval) => {
-    console.log(interval)
+export const processInterval = (interval, clickMoment) => {
+
     const now = moment()
     let from, to, granularity;
     switch (interval) {
-        case "last_60_seconds":
-            from = moment(now).subtract(60, 'seconds').unix();
+        case "last_10_seconds":
+            from = moment(clickMoment).subtract(10, 'seconds').unix();
             to = now.unix();
             granularity = "second"
             return { from, to, granularity }
         case "last_5_minutes":
-            from = moment(now).subtract(5, 'minutes').unix();
+            from = moment(clickMoment).subtract(5, 'minute').unix();
             to = now.unix();
             granularity = "minute"
             return { from, to, granularity }
-        case "last_60_minutes":
-            from = moment(now).subtract(60, 'minutes').unix();
+        case "last_2_hour":
+            from = moment(clickMoment).subtract(2, 'hour').unix();
             to = now.unix();
-            granularity = "minute"
+            granularity = "hour"
             return { from, to, granularity }            
         default:
-            throw new Error('Unexpected action');
+            throw new Error(`Unexpected action ${interval}`);
     }
 }
 
 export const useSelectorHook = (defaultValues) => {
     const { dispatch } = useAppContext();
     const [inputs, setInputs] = useState(defaultValues);
+    const [clickMoment, setClickMoment] = useState(undefined)
+    const [intervalId, setIntervalId] = useState(undefined)
+
+    React.useEffect(() => {
+        
+
+        if (clickMoment === undefined) {
+            return
+        }
+
+        if (intervalId) {
+            clearInterval(intervalId)
+            setIntervalId(undefined)
+        }
+        
+        queryGraphData(inputs)
+        setIntervalId(setInterval(() => queryGraphData(inputs), 1000))
+    }, [clickMoment])
+
+    const queryGraphData = async (requestData) => {
+        const { from, to, granularity } = processInterval(inputs.quickinternvals, clickMoment)
+
+        const apiRequest = {
+            timeserie: requestData.timeserie,
+            start: from,
+            end: to,
+            granularity: granularity
+        }
+
+        const graphData = await fetchGraphData(apiRequest);
+        if (graphData === undefined) {
+            dispatch({
+                type: SET_API_ERROR,
+                error: SET_GRAPH_DATA
+            });
+        } else {
+            dispatch({
+                type: SET_GRAPH_DATA,
+                graphData: graphData
+            });
+        }
+    };
 
     const handleSubmit = (event) => {
         if (event.preventDefault) {
             event.preventDefault();
         }
-
-        const queryGraphData = async (requestData) => {
-            const { from, to, granularity } = processInterval(inputs.quickinternvals)
-            const apiRequest = {
-                timeserie: requestData.timeserie,
-                start: from,
-                end: to,
-                granularity: granularity
-            }
-
-            const graphData = await fetchGraphData(apiRequest);
-            if (graphData === undefined) {
-                dispatch({
-                    type: SET_API_ERROR,
-                    error: SET_GRAPH_DATA
-                });
-            } else {
-                dispatch({
-                    type: SET_GRAPH_DATA,
-                    graphData: graphData
-                });
-            }
-        };
-        queryGraphData(inputs)
+        
+        setClickMoment(moment())
     }
 
     const handleInputChange = (event) => {

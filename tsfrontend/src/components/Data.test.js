@@ -119,7 +119,7 @@ describe("Data component", () => {
         //from.simulate('change', { persist: () => { }, target: { name: 'from', value: "0" } });
         //to.simulate('change', { persist: () => { }, target: { name: 'to', value: "1000" } });
         //granularitySelect.simulate('change', { persist: () => { }, target: { name: 'granularity', value: "second" } });
-        intervalsSelect.simulate('change', { persist: () => { }, target: { name: 'quickinternvals', value: "last_60_seconds" } });
+        intervalsSelect.simulate('change', { persist: () => { }, target: { name: 'quickinternvals', value: "last_10_seconds" } });
         form.simulate('submit');
 
         const expectedDispatch = {
@@ -149,7 +149,7 @@ describe("Data component", () => {
         timeseriesSelect.simulate('change', { persist: () => { }, target: { name: 'timeserie', value: mockConfiguration1.timeserie } });
         //from.simulate('change', { persist: () => { }, target: { name: 'from', value: "0" } });
         //to.simulate('change', { persist: () => { }, target: { name: 'to', value: "1000" } });
-        intervalsSelect.simulate('change', { persist: () => { }, target: { name: 'quickinternvals', value: "last_60_seconds" } });
+        intervalsSelect.simulate('change', { persist: () => { }, target: { name: 'quickinternvals', value: "last_10_seconds" } });
 
         form.simulate('submit');
 

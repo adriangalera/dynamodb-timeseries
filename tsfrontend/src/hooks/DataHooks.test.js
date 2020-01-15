@@ -183,18 +183,18 @@ describe("Data hook", () => {
         expect(graphConfiguration).toStrictEqual(expectedGraphConfiguration)
     })
 
-    it("should process last_60_seconds", () => {
+    it("should process last_10_seconds", () => {
         const now = moment()
-        const expectedfrom = moment(now).subtract(60, 'seconds').unix();
+        const expectedfrom = moment(now).subtract(10, 'seconds').unix();
         const expectedto = now.unix();
         const expectedgranularity = "second"
 
-        const { from, to, granularity } = processInterval("last_60_seconds")
+        const { from, to, granularity } = processInterval("last_10_seconds", now)
         expect(from).toBe(expectedfrom)
         expect(to).toBe(expectedto)
         expect(granularity).toBe(expectedgranularity)
-        expect(expectedto - expectedfrom).toBe(60)
-        expect(to - from).toBe(60)
+        expect(expectedto - expectedfrom).toBe(10)
+        expect(to - from).toBe(10)
     })
 
 })

@@ -31,6 +31,6 @@ export const reducer = (state, action) => {
                 error: action.error,
             }
         default:
-            throw new Error('Unexpected action');
+            throw new Error(`Unexpected action ${action.type}`);
     }
 }
