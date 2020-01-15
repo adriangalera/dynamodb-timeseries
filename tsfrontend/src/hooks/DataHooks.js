@@ -49,6 +49,7 @@ export const useSelectorHook = (defaultValues) => {
         
         queryGraphData(inputs)
         setIntervalId(setInterval(() => queryGraphData(inputs), 1000))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [clickMoment])
 
     const queryGraphData = async (requestData) => {
