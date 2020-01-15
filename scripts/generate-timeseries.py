@@ -9,12 +9,16 @@ customers_ts = "web/customers"
 
 def submit(exit_presence,living_room_temp,web_customers, api):
     unix_time = int(time.time())
-    data = {
-        temperature_ts : [[unix_time, living_room_temp]],
-        customers_ts: [[unix_time, web_customers]]
-    }
+    data = {}
+
+    if living_room_temp:
+        data[temperature_ts] = [[unix_time, living_room_temp]]
+    
+    if web_customers:
+        data[customers_ts] = [[unix_time, web_customers]]
+
     if exit_presence:
-        data[presence_ts] = [[unix_time, exit_presence]],
+        data[presence_ts] = [[unix_time, exit_presence]]
     print(data)
     add_data_endpoint = "/data"
     response = requests.post(api + add_data_endpoint, json=data)

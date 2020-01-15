@@ -1,5 +1,6 @@
 import random
 import requests
+import argparse
 
 temperature_ts = "living_room/temperature","average"
 presence_ts = "emergency_exit/presence","count"
@@ -22,6 +23,7 @@ def configure_timeserie(timeserie_name, aggregation, api):
         "timeserie": timeserie_name
     }
     configuration_endpoint = "/configuration"
+    print(configuration)
     response = requests.post(api + configuration_endpoint, json=configuration)
 
 
