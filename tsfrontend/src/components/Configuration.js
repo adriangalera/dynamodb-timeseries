@@ -6,45 +6,10 @@ import Col from 'react-bootstrap/Col';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 
-const fixedTimeSeries = {
-    "living_room/temperature": {
-        desc: "Temperature sensor in room",
-        agg: "average"
-    },
-    "web/customers": {
-        desc: "customers in web",
-        agg: "sum"
-    }
-}
-
-
-export const Explanation = () => {
-
-    const Timeserie = (props) => {
-        return <p><b>{props.ts}</b>: {props.desc}, aggregation method: {props.agg}</p>
-    }
-
-    let tsElements = [];
-
-    for (let ts of Object.keys(fixedTimeSeries)) {
-        const tsDef = fixedTimeSeries[ts]
-        tsElements.push(<Timeserie key={ts} ts={ts} desc={tsDef.desc} agg={tsDef.agg} />)
-    }
-
-    return <div>
-        <h1>
-            Configurations
-        </h1>
-        <p>Create the following time series:</p>
-        {tsElements}
-    </div>
-}
-
 export const Configuration = () => {
     const configurations = useGetConfigurations()
     return (
         <div>
-            <Explanation />
             <NewConfigurationForm />
             <ConfigurationTable configurations={configurations} />
         </div>

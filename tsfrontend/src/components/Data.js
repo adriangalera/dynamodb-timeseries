@@ -82,9 +82,9 @@ export const Selectors = () => {
             */}
             <Col>
                 <Form.Control as="select" name="quickinternvals" onChange={handleInputChange} value={inputs.quickinternvals}>
-                    <option value="last_10_seconds">10 seconds ago (seconds)</option>
-                    <option value="last_5_minutes">5 minutes ago (minutes)</option>
-                    <option value="last_2_hour">2 hours ago (hours)</option>
+                    <option value="last_10_seconds">Seconds</option>
+                    <option value="last_5_minutes">Minutes</option>
+                    <option value="last_2_hour">Hours</option>
                 </Form.Control>
             </Col>
             {/*
